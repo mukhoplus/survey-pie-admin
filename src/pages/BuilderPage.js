@@ -1,4 +1,5 @@
 import { Col, Input, Row } from 'antd';
+import { produce } from 'immer';
 import { useState } from 'react';
 
 import OptionSection from '../components/OptionSection';
@@ -51,11 +52,61 @@ const BuilderPage = () => {
           <Input
             placeholder="설문 제목을 입력해주세요."
             value={data.title}
-            onChange={(e) =>
-              setData((state) => ({ ...state, title: e.target.value }))
-            }
+            onChange={(e) => {
+              // 원본 데이터, 복사 데이터 <- 원본 데이터의 불변성
+              setData(
+                produce(data, (draft) => {
+                  draft.title = e.target.value;
+                }),
+              );
+            }}
           />
-          <PreviewSection questions={data.questions} />
+          <PreviewSection
+            questions={data.questions}
+            addQuestion={() => {
+              setData(
+                produce((draft) => {
+                  draft.questions.push({
+                    title: 'Untitled',
+                    desc: '',
+                    type: 'text',
+                    required: false,
+                    options: {
+                      max: 20,
+                      placeholder: '20자 이내로 입력해주세요.',
+                    },
+                  });
+                }),
+              );
+            }}
+            moveUpQuestion={(index) => {
+              setData(
+                produce((draft) => {
+                  const temp = draft.questions[index];
+                  draft.questions[index] = draft.questions[index - 1];
+                  draft.questions[index - 1] = temp;
+                }),
+              );
+            }}
+            deleteQuestion={(index) => {
+              setData(
+                produce((draft) => {
+                  draft.questions.splice(index, 1);
+                }),
+              );
+            }}
+            moveDownQuestion={(index) => {
+              if (index === data.questions.length - 1) return;
+
+              setData(
+                produce((draft) => {
+                  const temp = draft.questions[index];
+                  draft.questions[index] = draft.questions[index + 1];
+                  draft.questions[index + 1] = temp;
+                }),
+              );
+            }}
+          />
         </Col>
         <Col flex="350px">
           <OptionSection />

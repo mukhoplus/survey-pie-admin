@@ -1,22 +1,69 @@
+import { DeleteOutlined, DownOutlined, UpOutlined } from '@ant-design/icons';
+import { Button } from 'antd';
 import styled from 'styled-components';
 
-const Card = ({ title, desc, children }) => {
+const Card = ({
+  title,
+  desc,
+  children,
+  onUpButtonClick,
+  onDeleteButtonClick,
+  onDownButtonClick,
+  onClick,
+  isSelected,
+}) => {
   return (
-    <CardWrapper>
-      <Head>
+    <CardWrapper isSelected={isSelected}>
+      <Head onClick={onClick}>
         <Title>{title}</Title>
         <Desc>{desc}</Desc>
       </Head>
-      <Body>{children}</Body>
+      <Body onClick={onClick}>{children}</Body>
+
+      <ButtonGroupWrapper>
+        <ButtonGroup>
+          <Button type="text" onClick={onUpButtonClick} icon={<UpOutlined />} />
+          <Button
+            type="text"
+            onClick={onDeleteButtonClick}
+            icon={<DeleteOutlined />}
+          />
+          <Button
+            type="text"
+            onClick={onDownButtonClick}
+            icon={<DownOutlined />}
+          />
+        </ButtonGroup>
+      </ButtonGroupWrapper>
     </CardWrapper>
   );
 };
 
-const CardWrapper = styled.div`
+const ButtonGroupWrapper = styled.div`
+  position: absolute;
+  left: calc(100%);
+  top: 0;
+  display: none;
+`;
+
+const ButtonGroup = styled.div`
+  background: #ffffff;
+  margin-left: 10px;
   border: 1px solid #dddddd;
+  border-radius: 5px;
+`;
+
+const CardWrapper = styled.div`
+  border: ${({ isSelected }) =>
+    isSelected ? '3px solid blue' : '1px solid #dddddd'};
   width: 400px;
   margin: 30px auto;
   background: #ffffff;
+  position: relative;
+
+  &:hover ${ButtonGroupWrapper} {
+    display: block;
+  }
 `;
 
 const Head = styled.div`
