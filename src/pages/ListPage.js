@@ -1,88 +1,112 @@
-import { Table } from 'antd';
-import { useState } from 'react';
+import { Button, Table } from 'antd';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
 import useSWR from 'swr';
 
-import fetcher from '../ilb/fetcher';
 import MainLayout from '../layouts/MainLayout';
+import fetcher from '../lib/fetcher';
+import deleteSurvey from '../services/deleteSurvey';
 
 const PAGE_SIZE = 20;
 
-const columns = [
-  {
-    title: '번호',
-    dataIndex: 'id',
-    key: 'id',
-  },
-  {
-    title: '제목',
-    dataIndex: 'title',
-    key: 'title',
-  },
-  {
-    title: '생성일',
-    dataIndex: 'createdAt',
-    key: 'createdAt',
-    render: (createAt) => {
-      const time = new Date(createAt);
-      return `${time.getFullYear()}-${time.getMonth() + 1}-${time.getDate()}`;
-    },
-  },
-  {
-    title: '액션',
-    dataIndex: 'action',
-    key: 'action',
-    render: (_, record) => {
-      return (
-        <button
-          onClick={() => {
-            console.log(record.id, '삭제');
-          }}
-        >
-          삭제
-        </button>
-      );
-    },
-  },
-];
-
 const ListPage = () => {
-  const [page, setPage] = useState(1);
-  /**
-   * list -> 현재 페이지의 데이터
-   * total -> 페이지네이션 계산을 위한, 실제 서버의 데이터 수
-   */
-  const { data, error } = useSWR('/surveys', fetcher);
+  const { data, error, mutate } = useSWR(
+    '/surveys?_sort=id&_order=desc',
+    fetcher,
+  );
   const navigate = useNavigate();
+  const [page, setPage] = useState(1);
 
-  if (error) return 'errer';
-  if (!data) return 'loading...';
+  const columns = useMemo(
+    () => [
+      {
+        title: '번호',
+        dataIndex: 'id',
+        key: 'id',
+      },
+      {
+        title: '제목',
+        dataIndex: 'title',
+        key: 'title',
+      },
+      {
+        title: '생성일',
+        dataIndex: 'createdAt',
+        key: 'createdAt',
+        render: (createdAt) => {
+          const time = new Date(createdAt);
+
+          return `${time.getFullYear()}-${
+            time.getMonth() + 1
+          }-${time.getDate()}`;
+        },
+      },
+      {
+        title: '액션',
+        dataIndex: 'id',
+        key: 'action',
+        render: (id) => {
+          return (
+            <Button
+              danger
+              onClick={(e) => {
+                deleteSurvey(id).then(() => mutate());
+
+                e.stopPropagation();
+                e.preventDefault();
+              }}
+            >
+              삭제
+            </Button>
+          );
+        },
+      },
+    ],
+    [mutate],
+  );
+
+  if (error) {
+    return 'error';
+  }
+
+  if (!data) {
+    return 'loading...';
+  }
 
   return (
     <MainLayout selectedKeys={['list']}>
+      <CreateButtonWrapper>
+        <Button onClick={() => navigate('/builder')}>
+          새로운 설문조사 생성
+        </Button>
+      </CreateButtonWrapper>
       <Table
         onRow={(record, rowIndex) => {
           return {
             onClick: (event) => {
-              console.log('onClick', record.id, record);
               navigate(`/builder/${record.id}`);
             },
           };
         }}
-        pagenation={{
+        pagination={{
           total: data.length,
           current: page,
           pageSize: PAGE_SIZE,
         }}
         onChange={(pagination) => {
-          console.log(pagination);
           setPage(pagination.current);
         }}
-        dataSource={data.map((item) => ({ ...item, key: item.id }))}
         columns={columns}
+        dataSource={data.map((item) => ({ ...item, key: item.id }))}
       />
     </MainLayout>
   );
 };
+
+const CreateButtonWrapper = styled.div`
+  text-align: right;
+  margin-bottom: 25px;
+`;
 
 export default ListPage;

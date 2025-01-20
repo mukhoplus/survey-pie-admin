@@ -7,8 +7,8 @@ const Card = ({
   desc,
   children,
   onUpButtonClick,
-  onDeleteButtonClick,
   onDownButtonClick,
+  onDeleteButtonClick,
   onClick,
   isSelected,
 }) => {
@@ -49,6 +49,7 @@ const ButtonGroupWrapper = styled.div`
 const ButtonGroup = styled.div`
   background: #ffffff;
   margin-left: 10px;
+  background: #ffffff;
   border: 1px solid #dddddd;
   border-radius: 5px;
 `;
